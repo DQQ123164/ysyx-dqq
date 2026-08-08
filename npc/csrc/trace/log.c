@@ -58,7 +58,7 @@ void trace_write(TraceKind kind, const char *format, ...) {
   va_end(args);
 }
 
-void show_files(void) {
+void show_files(MonitorOptions options) {
   const char *image = (options.image == NULL) ? "NULL" : options.image;
   printf(ANSI_FMT("[npc] the image file is: %s\n", ANSI_FG_BLUE), image);
 

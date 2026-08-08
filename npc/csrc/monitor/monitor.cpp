@@ -135,7 +135,7 @@ static void show_welcome() {
   printf(ANSI_FMT("[npc] ready: isa=riscv32 platform=%s trace=%s\n", ANSI_FG_BLUE), platform, trace_status);
   printf(ANSI_FMT("[npc] enter 'help' to list debugger commands\n", ANSI_FG_BLUE));
   printf(ANSI_FMT("[npc] the parameters are showed below:\n", ANSI_FG_BLUE));
-  show_files();
+  show_files(options);
 }
 
 // release the space
