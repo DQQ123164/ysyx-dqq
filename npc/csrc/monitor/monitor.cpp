@@ -137,7 +137,6 @@ static void show_welcome() {
   printf(ANSI_FMT("[npc] the parameters are showed below:\n", ANSI_FG_BLUE));
   show_files(options);
 }
-
 // release the space
 void delete_workspace() {
   cleanup_platform();
