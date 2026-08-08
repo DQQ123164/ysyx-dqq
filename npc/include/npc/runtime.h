@@ -4,7 +4,9 @@
 #include <stdio.h>
 
 #include <npc/base.h>
+#include <npc/monitor.h>
 #include <npc/terminal.h>
+
 
 typedef enum {
   NPC_RUNNING,
@@ -39,6 +41,7 @@ void init_log(const char *path);
 
 void init_trace_log(TraceKind kind, const char *path);
 void trace_write(TraceKind kind, const char *format, ...);
+void show_files(MonitorOptions options);
 
 void init_rand(void);
 uint64_t get_time(void);

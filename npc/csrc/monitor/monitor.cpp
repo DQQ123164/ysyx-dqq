@@ -28,7 +28,7 @@ static void print_usage(const char *program) {
   puts("  -M, --mtrace-log=FILE    write memory trace to FILE");
   puts("  -D, --dtrace-log=FILE    write device trace to FILE");
 }
-
+// init the param from the cmd
 static void parse_args(int argc, char **argv) {
   static const struct option long_options[] = {
     {"batch",      no_argument,       NULL, 'b'},
@@ -67,13 +67,13 @@ static void parse_args(int argc, char **argv) {
     panic("The image is null, guest image is required!");
   }
 }
-
+// Init the circuit top
 static void init_sim(int argc, char **argv) {
   sim_ctx = new VerilatedContext;
-  sim_ctx->commandArgs(argc, argv);
+  sim_ctx->commandArgs(argc, argv); 
   sim_top = new SimTop{sim_ctx};
 }
-
+// init the trace logs
 static void init_tracing() {
   init_log(options.log);
   IFDEF(CONFIG_FTRACE, init_trace_log(TRACE_FTRACE, options.ftrace_log));
@@ -82,7 +82,7 @@ static void init_tracing() {
   IFDEF(CONFIG_DTRACE, init_trace_log(TRACE_DTRACE, options.dtrace_log));
   IFDEF(CONFIG_FTRACE, init_ftrace(options.elf));
 }
-
+// init the wave function
 static VerilatedVcdC *create_waveform() {
 #ifdef CONFIG_WAVE
   Verilated::traceEverOn(true);
@@ -94,13 +94,13 @@ static VerilatedVcdC *create_waveform() {
   return NULL;
 #endif
 }
-
+// flip clock
 static void evaluate_clock(bool level) {
   sim_top->clock = level;
   sim_top->eval();
   sim_ctx->timeInc(1);
 }
-
+// reset the simulator for 10 cycles
 static void reset_simulator() {
   sim_top->reset = 1;
   platform_idle(sim_top);
@@ -111,7 +111,7 @@ static void reset_simulator() {
   }
   sim_top->reset = 0;
 }
-
+// load the mem and isa
 static long load_guest() {
   init_mem();
   init_isa();
@@ -122,18 +122,20 @@ static long load_guest() {
   cpu_reset(reset_pc());
   return image_size;
 }
-
+// for difftest itrace and sdb
 static void init_debugger(long image_size) {
   init_difftest(options.reference, image_size, options.reference_port);
   init_sdb();
   IFDEF(CONFIG_ITRACE, init_disasm());
 }
-
+// show welcome info
 static void show_welcome() {
   const char *platform     = MUXDEF(NPC_BUILD_PLATFORM_YSYXSOC, "ysyxSoC", "standalone");
   const char *trace_status = MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED));
   printf(ANSI_FMT("[npc] ready: isa=riscv32 platform=%s trace=%s\n", ANSI_FG_BLUE), platform, trace_status);
   printf(ANSI_FMT("[npc] enter 'help' to list debugger commands\n", ANSI_FG_BLUE));
+  printf(ANSI_FMT("[npc] the parameters are showed below:\n", ANSI_FG_BLUE));
+  show_files(options);
 }
 // release the space
 void delete_workspace() {
