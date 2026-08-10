@@ -172,17 +172,14 @@ void ftrace_trace(vaddr_t pc, uint32_t instruction, vaddr_t next_pc) {
   int rs1 = BITS(instruction, 19, 15);
 
   if (opcode == 0x6f && (rd == 1 || rd == 5)) {
-    trace_write(TRACE_FTRACE, FMT_WORD ": %*scall [%s@" FMT_WORD "]\n",
-        pc, (int)(trace.depth * 2), "", function_name(next_pc), next_pc);
+    trace_write(TRACE_FTRACE, FMT_WORD ": %*scall [%s@" FMT_WORD "]\n", pc, (int)(trace.depth * 2), "", function_name(next_pc), next_pc);
     trace.depth++;
   } else if (opcode == 0x67) {
     if (rd == 0 && rs1 == 1) {
       if (trace.depth != 0) trace.depth--;
-      trace_write(TRACE_FTRACE, FMT_WORD ": %*sret  [%s]\n",
-          pc, (int)(trace.depth * 2), "", function_name(pc));
+      trace_write(TRACE_FTRACE, FMT_WORD ": %*sret  [%s]\n", pc, (int)(trace.depth * 2), "", function_name(pc));
     } else if (rd == 1 || rd == 5) {
-      trace_write(TRACE_FTRACE, FMT_WORD ": %*scall [%s@" FMT_WORD "]\n",
-          pc, (int)(trace.depth * 2), "", function_name(next_pc), next_pc);
+      trace_write(TRACE_FTRACE, FMT_WORD ": %*scall [%s@" FMT_WORD "]\n", pc, (int)(trace.depth * 2), "", function_name(next_pc), next_pc);
       trace.depth++;
     }
   }

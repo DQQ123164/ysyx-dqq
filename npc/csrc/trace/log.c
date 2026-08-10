@@ -16,10 +16,9 @@ void init_log(const char *log_file) {
     Assert(log_fp != NULL, "Can not open '%s'", log_file);
   }
 }
-
+// judge the log start (attention to the inst number)
 bool log_enable() {
-  return MUXDEF(CONFIG_TRACE, (guest_insts >= CONFIG_TRACE_START) &&
-         (guest_insts <= CONFIG_TRACE_END), false);
+  return MUXDEF(CONFIG_TRACE, (guest_insts >= CONFIG_TRACE_START) && (guest_insts <= CONFIG_TRACE_END), false);
 }
 
 void init_trace_log(TraceKind kind, const char *log_file) {
@@ -42,13 +41,14 @@ void trace_write(TraceKind kind, const char *format, ...) {
   va_list args;
   va_start(args, format);
   uint64_t time = get_sim_time();
-
+  // write to main log
   if (log_fp != NULL) {
     va_list copy;
     va_copy(copy, args);
     write_record(log_fp, kind, time, format, copy);
     va_end(copy);
   }
+  // write to trace log
   if (trace_streams[kind] != NULL) {
     va_list copy;
     va_copy(copy, args);

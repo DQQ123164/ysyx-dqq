@@ -8,11 +8,11 @@
 
 static uint8_t pmem[NPC_PMEM_SIZE] = {};
 static long image_size = 0;
-
+// the address constrain for npc
 static bool pmem_contains(paddr_t address) {
   return address_in_window(address, NPC_PMEM_BASE, NPC_PMEM_SIZE);
 }
-
+// load the bin into flash && return the size of bin (for function load_image(const char *path))
 static long read_image(const char *path) {
   FILE *file = fopen(path, "rb");
   Assert(file != NULL, "can not open '%s'", path);
@@ -24,23 +24,20 @@ static long read_image(const char *path) {
 
   size_t loaded = fread(pmem, 1, (size_t)size, file);
   fclose(file);
-  Assert(loaded == (size_t)size,
-      "failed to read image '%s': size=%ld loaded=%zu", path, size, loaded);
+  Assert(loaded == (size_t)size, "failed to read image '%s': size=%ld loaded=%zu", path, size, loaded);
   return size;
 }
 
 void log_memory() {
-  Log("PMEM: [0x%08x, 0x%08x] (%u MiB)",
-      NPC_PMEM_BASE, NPC_PMEM_BASE + NPC_PMEM_SIZE - 1,
-      NPC_PMEM_SIZE >> 20);
+  Log("PMEM: [0x%08x, 0x%08x] (%u MiB)", NPC_PMEM_BASE, NPC_PMEM_BASE + NPC_PMEM_SIZE - 1, NPC_PMEM_SIZE >> 20);
 }
-
+// no use function just for compatibility
 void init_platform() {}
 void cleanup_platform() {}
 void update_platform() {}
 void platform_idle(SimTop *model) { (void)model; }
 uint32_t reset_pc() { return NPC_RESET_PC_NPC; }
-
+// the main image load function
 long load_image(const char *path) {
   image_size = read_image(path);
   return image_size;
@@ -101,16 +98,15 @@ void difftest_copy_sdram(
 void difftest_enable_soc(void (*enable_soc_address_space)(void)) {
   (void)enable_soc_address_space;
 }
-
+// for verilator simulation
 extern "C" int pmem_read(int address) {
   word_t value = 0;
   uint32_t aligned = (uint32_t)address & ~0x3u;
   if (!mem_read(aligned, 4, &value)) return 0;
   return (int)value;
 }
-
-extern "C" void pmem_write(
-    int address, int data, unsigned char byte_enable) {
+// for verilator simulation
+extern "C" void pmem_write(int address, int data, unsigned char byte_enable) {
   uint32_t aligned = (uint32_t)address & ~0x3u;
   Assert((byte_enable & 0xf0u) == 0 && (byte_enable & 0x0fu) != 0, "bad DPI store: addr=0x%08x data=0x%08x mask=0x%02x pc=" FMT_WORD, (uint32_t)address, (uint32_t)data, byte_enable, cpu.pc);
   Assert(access_fits(aligned, 4, NPC_PMEM_BASE, NPC_PMEM_SIZE), "DPI store outside PMEM: addr=0x%08x pc=" FMT_WORD, (uint32_t)address, cpu.pc);

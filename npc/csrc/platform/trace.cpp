@@ -2,16 +2,13 @@
 #include <npc/runtime.h>
 
 #if defined(CONFIG_MTRACE) || defined(CONFIG_DTRACE)
-static void write_access_trace(
-    TraceKind kind, char access, paddr_t address,
-    int length, word_t value, const char *region) {
+static void write_access_trace(TraceKind kind, char access, paddr_t address, int length, word_t value, const char *region) {
   if (region == NULL) return;
   trace_write(kind, FMT_WORD " %c %d " FMT_WORD " [%s]\n", address, access, length, value, region);
 }
 #endif
 
-static void trace_memory(
-    char access, paddr_t address, int length, word_t value) {
+static void trace_memory(char access, paddr_t address, int length, word_t value) {
 #ifdef CONFIG_MTRACE
   if (MTRACE_COND) {
     write_access_trace(TRACE_MTRACE, access, address, length, value, mem_region(address));
