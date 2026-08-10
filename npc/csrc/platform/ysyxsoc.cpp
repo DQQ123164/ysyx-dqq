@@ -42,30 +42,26 @@ static const Region memories[] = {
     {0xc0000000u, 0x40000000u, "ChipLink MEM"},
 };
 #endif
-
-static const char *lookup_region(paddr_t address, const Region *map, size_t count)
-{
-  for (size_t i = 0; i < count; i++)
-  {
+// find the device name by address
+static const char *lookup_region(paddr_t address, const Region *map, size_t count){
+  for (size_t i = 0; i < count; i++){
     if (address_in_window(address, map[i].base, map[i].size))
       return map[i].name;
   }
   return NULL;
 }
-
-static bool in_flash(paddr_t address)
-{
+// estimate address whether in flash
+static bool in_flash(paddr_t address){
   return address_in_window(address, NPC_FLASH_BASE, NPC_FLASH_SIZE);
 }
-
-static bool in_sdram(paddr_t address)
-{
+// estimate address whether in sdram
+static bool in_sdram(paddr_t address){
   return address_in_window(address, NPC_SDRAM_BASE, NPC_SDRAM_SIZE);
 }
 // load the bin into flash && return the size of bin
 static long read_image(const char *path)
 {
-  // initial the mem (flash wit ff)
+  // initial the mem (flash with ff)
   memset(flash_mem, 0xff, sizeof(flash_mem));
   memset(sdram_mem, 0, sizeof(sdram_mem));
 
