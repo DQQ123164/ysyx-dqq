@@ -79,8 +79,7 @@ static void advance_rtl() {
     Log("run limit reached: cycles=%" PRIu64, stats.nr_cycles);
     npc_state.state = NPC_ABORT;
   } else if (stats.stall_cycles >= CONFIG_MAX_NO_COMMIT_CYCLES) {
-    Log("run stalled: idle_cycles=%" PRIu64 " pc=" FMT_WORD,
-        stats.stall_cycles, cpu.pc);
+    Log("run stalled: idle_cycles=%" PRIu64 " pc=" FMT_WORD, stats.stall_cycles, cpu.pc);
     npc_state.state = NPC_ABORT;
     npc_state.halt_pc = cpu.pc;
   }
@@ -90,19 +89,16 @@ static void format_instruction(Decode *decode) {
 #ifdef CONFIG_ITRACE
   char *cursor = decode->logbuf;
   cursor += snprintf(cursor, sizeof(decode->logbuf), FMT_WORD ":", decode->pc);
-
   const int instruction_length = sizeof(decode->isa.inst);
   const uint8_t *bytes = (const uint8_t *)&decode->isa.inst;
   for (int index = instruction_length - 1; index >= 0; index --) {
     cursor += snprintf(cursor, 4, " %02x", bytes[index]);
   }
-
   const int padding = (int)sizeof(decode->isa.inst) - instruction_length;
   const int padding_length = padding > 0 ? padding * 3 + 1 : 1;
   memset(cursor, ' ', padding_length);
   cursor += padding_length;
-  disassemble(cursor, decode->logbuf + sizeof(decode->logbuf) - cursor,
-      decode->pc, (uint8_t *)&decode->isa.inst, instruction_length);
+  disassemble(cursor, decode->logbuf + sizeof(decode->logbuf) - cursor, decode->pc, (uint8_t *)&decode->isa.inst, instruction_length);
 #else
   (void)decode;
 #endif
@@ -114,8 +110,7 @@ static bool retire_one(Decode *decode) {
   do {
     advance_rtl();
     update_platform();
-  } while (npc_state.state == NPC_RUNNING
-      && !cpu_take_commit(&retired_pc, &retired_inst) && !Verilated::gotFinish());
+  } while (npc_state.state == NPC_RUNNING && !cpu_take_commit(&retired_pc, &retired_inst) && !Verilated::gotFinish());
 
   if (npc_state.state != NPC_RUNNING) {
     return false;
@@ -144,23 +139,17 @@ static void run_instructions(uint64_t count) {
 static void print_run_summary() {
   setlocale(LC_NUMERIC, "");
 #define NUMERIC_FMT "%'" PRIu64
-  double ipc = stats.nr_cycles == 0 ? 0.0
-      : (double)guest_insts / (double)stats.nr_cycles;
-  double cpi = guest_insts == 0 ? 0.0
-      : (double)stats.nr_cycles / (double)guest_insts;
-  uint64_t instruction_rate = stats.host_time == 0 ? 0
-      : guest_insts * 1000000 / stats.host_time;
-  uint64_t cycle_rate = stats.host_time == 0 ? 0
-      : stats.nr_cycles * 1000000 / stats.host_time;
+  double ipc = stats.nr_cycles == 0 ? 0.0 : (double)guest_insts / (double)stats.nr_cycles;
+  double cpi = guest_insts == 0 ? 0.0 : (double)stats.nr_cycles / (double)guest_insts;
+  uint64_t instruction_rate = stats.host_time == 0 ? 0 : guest_insts * 1000000 / stats.host_time;
+  uint64_t cycle_rate = stats.host_time == 0 ? 0 : stats.nr_cycles * 1000000 / stats.host_time;
 
-  Log("host time spent = " NUMERIC_FMT " us (%.3f ms)",
-      stats.host_time, (double)stats.host_time / 1000.0);
+  Log("host time spent = " NUMERIC_FMT " us (%.3f ms)", stats.host_time, (double)stats.host_time / 1000.0);
   Log("total guest instructions = " NUMERIC_FMT, guest_insts);
   Log("RTL cycles = " NUMERIC_FMT, stats.nr_cycles);
   Log("IPC = %.4f, CPI = %.2f", ipc, cpi);
   if (stats.host_time > 0) {
-    Log("simulation frequency = " NUMERIC_FMT " inst/s, " NUMERIC_FMT " cycles/s",
-        instruction_rate, cycle_rate);
+    Log("simulation frequency = " NUMERIC_FMT " inst/s, " NUMERIC_FMT " cycles/s", instruction_rate, cycle_rate);
   } else {
     Log("simulation frequency is unavailable (runtime < 1 us)");
   }
@@ -191,19 +180,13 @@ void cpu_exec(uint64_t n) {
   switch (npc_state.state) {
     case NPC_RUNNING: npc_state.state = NPC_STOP; break;
     case NPC_STOP: break;
-
     case NPC_END: case NPC_ABORT:
       if (npc_state.state == NPC_ABORT) {
-        Log("npc: %s at pc = " FMT_WORD,
-            ANSI_FMT("ABORT", ANSI_FG_RED), npc_state.halt_pc);
+        Log("npc: %s at pc = " FMT_WORD, ANSI_FMT("ABORT", ANSI_FG_RED), npc_state.halt_pc);
       } else if (npc_state.halt_ret == 0) {
-        Log("npc: %s at pc = " FMT_WORD ", exit code = %u",
-            ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN),
-            npc_state.halt_pc, npc_state.halt_ret);
+        Log("npc: %s at pc = " FMT_WORD ", exit code = %u", ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN), npc_state.halt_pc, npc_state.halt_ret);
       } else {
-        Log("npc: %s at pc = " FMT_WORD ", exit code = %u",
-            ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED),
-            npc_state.halt_pc, npc_state.halt_ret);
+        Log("npc: %s at pc = " FMT_WORD ", exit code = %u", ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED), npc_state.halt_pc, npc_state.halt_ret);
       }
       // fall through
     case NPC_QUIT:
