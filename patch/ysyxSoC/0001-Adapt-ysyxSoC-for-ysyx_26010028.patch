@@ -1,8 +1,9 @@
-From 5dc003e3366fc7f5491bf36245000f693fbf6bb9 Mon Sep 17 00:00:00 2001
+From cfd4ad1ccfc5390f10330508d5cf65229ef2bc50 Mon Sep 17 00:00:00 2001
 From: DQQ123164 <195072927+DQQ123164@users.noreply.github.com>
-Date: Sat, 8 Aug 2026 10:19:42 +0800
+Date: Mon, 10 Aug 2026 09:22:52 +0800
 Subject: [PATCH] Adapt ysyxSoC for ysyx_26010028
 
+Update SDRAM DPI callbacks.
 ---
  .gitignore                              |   1 +
  Makefile                                |  15 +-
@@ -1635,7 +1636,7 @@ index d9bdd882..326c8acd 100644
  
  endmodule
 diff --git a/perip/sdram/sdram.v b/perip/sdram/sdram.v
-index 3613b231..d1313a54 100644
+index 3613b231..f6362ca6 100644
 --- a/perip/sdram/sdram.v
 +++ b/perip/sdram/sdram.v
 @@ -1,16 +1,279 @@
@@ -1689,10 +1690,10 @@ index 3613b231..d1313a54 100644
 +
 +`ifndef SYNTHESIS
 +`ifndef __ICARUS__
-+  import "DPI-C" function int unsigned sdram_read16(
++  import "DPI-C" function int unsigned sdram_read(
 +    input int unsigned word_addr
 +  );
-+  import "DPI-C" function void sdram_write16(
++  import "DPI-C" function void sdram_write(
 +    input int unsigned word_addr,
 +    input int unsigned data,
 +    input int unsigned mask
@@ -1772,7 +1773,7 @@ index 3613b231..d1313a54 100644
 +    begin
 +`ifndef SYNTHESIS
 +`ifndef __ICARUS__
-+      data = sdram_read16(address);
++      data = sdram_read(address);
 +      read_word = data[15:0];
 +`else
 +      read_word = 16'h0000;
@@ -1790,7 +1791,7 @@ index 3613b231..d1313a54 100644
 +    begin
 +`ifndef SYNTHESIS
 +`ifndef __ICARUS__
-+      sdram_write16(address, {16'b0, data}, {30'b0, mask});
++      sdram_write(address, {16'b0, data}, {30'b0, mask});
 +`endif
 +`endif
 +    end
