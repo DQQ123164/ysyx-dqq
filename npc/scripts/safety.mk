@@ -18,9 +18,15 @@ safety-files: rtl-bundle
 	@printf '%s required source files are present\n' '$(CHECK_TAG)'
 
 safety-core-interface: safety-files
-	@if grep -n 'io_slave_' "$(CHECK_CORE)" "$(CHECK_TOP)" "$(CHECK_RTL)"; then \
-		printf '%s ERROR: removed AXI Slave ports reappeared in NPC RTL\n' '$(CHECK_TAG)'; exit 1; \
-	fi
+	@for signal in \
+		io_slave_awready io_slave_awvalid io_slave_awaddr io_slave_awid io_slave_awlen io_slave_awsize io_slave_awburst \
+		io_slave_wready io_slave_wvalid io_slave_wdata io_slave_wstrb io_slave_wlast \
+		io_slave_bready io_slave_bvalid io_slave_bresp io_slave_bid \
+		io_slave_arready io_slave_arvalid io_slave_araddr io_slave_arid io_slave_arlen io_slave_arsize io_slave_arburst \
+		io_slave_rready io_slave_rvalid io_slave_rresp io_slave_rdata io_slave_rlast io_slave_rid; do \
+		grep -q "$$signal" "$(CHECK_CORE)" || \
+			{ printf '%s ERROR: missing AXI Slave signal: %s\n' '$(CHECK_TAG)' "$$signal"; exit 1; }; \
+	done
 	@modules=$$(grep -hE '^[[:space:]]*module[[:space:]]+ysyx_26010028([[:space:]]|\()' $(CHECK_RTL) | wc -l); \
 	if test "$$modules" -ne 1; then \
 		printf '%s ERROR: expected one ysyx_26010028 module, found %s\n' '$(CHECK_TAG)' "$$modules"; exit 1; \
@@ -46,13 +52,13 @@ safety-soc-sync: safety-files
 	@if find "$(YSYX_SOC_HOME)/src" -type f -name '*.scala' -newer "$(CHECK_SOC_RTL)" -print -quit | grep -q .; then \
 		printf '%s ERROR: generated SoC is older than Scala sources\n' '$(CHECK_TAG)'; exit 1; \
 	fi
-	@if grep -nE 'val[[:space:]]+io_slave' "$(CHECK_SOC_SCALA)"; then \
-		printf '%s ERROR: CPU BlackBox still declares io_slave\n' '$(CHECK_TAG)'; exit 1; \
+	@if ! grep -qE 'val[[:space:]]+io_slave' "$(CHECK_SOC_SCALA)"; then \
+		printf '%s ERROR: CPU BlackBox is missing io_slave\n' '$(CHECK_TAG)'; exit 1; \
 	fi
 	@block=$$(awk '/ysyx_26010028 core[[:space:]]*\(/,/^[[:space:]]*\);/' "$(CHECK_SOC_RTL)"); \
 	if test -z "$$block"; then printf '%s ERROR: ysyx_26010028 instance not found\n' '$(CHECK_TAG)'; exit 1; fi; \
-	if printf '%s\n' "$$block" | grep -q io_slave_; then \
-		printf '%s ERROR: generated SoC still connects removed Slave pins\n' '$(CHECK_TAG)'; exit 1; \
+	if ! printf '%s\n' "$$block" | grep -q io_slave_; then \
+		printf '%s ERROR: generated SoC is missing AXI Slave connections\n' '$(CHECK_TAG)'; exit 1; \
 	fi
 	@printf '%s ysyxSoC generated interface is current\n' '$(CHECK_TAG)'
 

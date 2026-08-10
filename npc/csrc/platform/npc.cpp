@@ -42,24 +42,23 @@ long load_image(const char *path) {
   image_size = read_image(path);
   return image_size;
 }
-
+// mem-read function for debug
 bool mem_read(paddr_t address, int length, word_t *value) {
   if (!access_fits(address, length, NPC_PMEM_BASE, NPC_PMEM_SIZE)) return false;
   *value = host_read(pmem + address - NPC_PMEM_BASE, length);
   return true;
 }
-
+// mem-write function for debug
 bool mem_write(paddr_t address, int length, word_t value) {
   if (!access_fits(address, length, NPC_PMEM_BASE, NPC_PMEM_SIZE)) return false;
   host_write(pmem + address - NPC_PMEM_BASE, length, value);
   return true;
 }
-
+// security function for error memory access
 void mem_fault(paddr_t address) {
-  panic("address = " FMT_PADDR " is outside PMEM [0x%08x, 0x%08x] at pc = " FMT_WORD,
-      address, NPC_PMEM_BASE, NPC_PMEM_BASE + NPC_PMEM_SIZE - 1, cpu.pc);
+  panic("address = " FMT_PADDR " is outside PMEM [0x%08x, 0x%08x] at pc = " FMT_WORD, address, NPC_PMEM_BASE, NPC_PMEM_BASE + NPC_PMEM_SIZE - 1, cpu.pc);
 }
-
+// since the npc just have uart (clint is not in the device map)
 const char *device_region(paddr_t address) {
   return address_in_window(address, 0x10000000u, 0x1000u) ? "UART" : NULL;
 }

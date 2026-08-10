@@ -8,6 +8,11 @@ module npc_top
     wire        retire_seen;
     wire [31:0] retire_pc;
     wire [31:0] retire_word;
+`ifdef NPC_NETLIST_SIM
+    assign retire_seen = 1'b0;
+    assign retire_pc   = 32'b0;
+    assign retire_word = 32'b0;
+`endif
     // AXI4模拟外部总线
     // AXI4 AR读地址通道信号
     wire [31:0] bus_araddr;
@@ -55,9 +60,11 @@ module npc_top
         .reset                (reset),
         .io_interrupt         (1'b0),
 
+`ifndef NPC_NETLIST_SIM
         .commit_valid_out    (retire_seen),
         .commit_pc_out       (retire_pc),
         .commit_inst_out     (retire_word),
+`endif
 
         .io_master_araddr     (bus_araddr),
         .io_master_arid       (bus_arid),
@@ -88,7 +95,41 @@ module npc_top
         .io_master_bid        (bus_bid),
         .io_master_bresp      (bus_bresp),
         .io_master_bvalid     (bus_bvalid),
-        .io_master_bready     (bus_bready)
+        .io_master_bready     (bus_bready),
+
+        .io_slave_awready     (),
+        .io_slave_awvalid     (1'b0),
+        .io_slave_awaddr      (32'b0),
+        .io_slave_awid        (4'b0),
+        .io_slave_awlen       (8'b0),
+        .io_slave_awsize      (3'b0),
+        .io_slave_awburst     (2'b0),
+
+        .io_slave_wready      (),
+        .io_slave_wvalid      (1'b0),
+        .io_slave_wdata       (32'b0),
+        .io_slave_wstrb       (4'b0),
+        .io_slave_wlast       (1'b0),
+
+        .io_slave_bready      (1'b0),
+        .io_slave_bvalid      (),
+        .io_slave_bresp       (),
+        .io_slave_bid         (),
+
+        .io_slave_arready     (),
+        .io_slave_arvalid     (1'b0),
+        .io_slave_araddr      (32'b0),
+        .io_slave_arid        (4'b0),
+        .io_slave_arlen       (8'b0),
+        .io_slave_arsize      (3'b0),
+        .io_slave_arburst     (2'b0),
+
+        .io_slave_rready      (1'b0),
+        .io_slave_rvalid      (),
+        .io_slave_rresp       (),
+        .io_slave_rdata       (),
+        .io_slave_rlast       (),
+        .io_slave_rid         ()
     );
     // UART和模拟器退出寄存器地址
     localparam [31:0] UART_LO_ADDR = 32'h1000_0000;

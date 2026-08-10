@@ -3,7 +3,7 @@
 IV_CC ?= iverilog
 IV_VM ?= vvp
 IV_OPTIONS ?=
-GATE_OPTIONS ?= -Dfunctional
+GATE_OPTIONS ?= -Dfunctional -DNPC_NETLIST_SIM
 
 IV_DRIVER := $(NPC_DIR)/scripts/iv-smoke.sh
 SMOKE_ROOT := $(ARTIFACT_ROOT)/iverilog

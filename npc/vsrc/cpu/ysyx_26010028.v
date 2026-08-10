@@ -1,3 +1,9 @@
+`ifdef NPC_SIMULATION
+`define YSYX_26010028_LOCAL_COMMIT_PORTS
+`elsif __ICARUS__
+`define YSYX_26010028_LOCAL_COMMIT_PORTS
+`endif
+
 module ysyx_26010028 #(
     parameter [31:0] RESET_PC = 32'h3000_0000
 ) (
@@ -5,9 +11,11 @@ module ysyx_26010028 #(
     input         reset,
     input         io_interrupt,
 
+`ifdef YSYX_26010028_LOCAL_COMMIT_PORTS
     output        commit_valid_out,
     output [31:0] commit_pc_out,
     output [31:0] commit_inst_out,
+`endif
 
     input         io_master_awready,
     output        io_master_awvalid,
@@ -37,7 +45,37 @@ module ysyx_26010028 #(
     input  [ 3:0] io_master_rid,
     input  [31:0] io_master_rdata,
     input  [ 1:0] io_master_rresp,
-    input         io_master_rlast
+    input         io_master_rlast,
+
+    output        io_slave_awready,
+    input         io_slave_awvalid,
+    input  [31:0] io_slave_awaddr,
+    input  [ 3:0] io_slave_awid,
+    input  [ 7:0] io_slave_awlen,
+    input  [ 2:0] io_slave_awsize,
+    input  [ 1:0] io_slave_awburst,
+    output        io_slave_wready,
+    input         io_slave_wvalid,
+    input  [31:0] io_slave_wdata,
+    input  [ 3:0] io_slave_wstrb,
+    input         io_slave_wlast,
+    input         io_slave_bready,
+    output        io_slave_bvalid,
+    output [ 1:0] io_slave_bresp,
+    output [ 3:0] io_slave_bid,
+    output        io_slave_arready,
+    input         io_slave_arvalid,
+    input  [31:0] io_slave_araddr,
+    input  [ 3:0] io_slave_arid,
+    input  [ 7:0] io_slave_arlen,
+    input  [ 2:0] io_slave_arsize,
+    input  [ 1:0] io_slave_arburst,
+    input         io_slave_rready,
+    output        io_slave_rvalid,
+    output [ 1:0] io_slave_rresp,
+    output [31:0] io_slave_rdata,
+    output        io_slave_rlast,
+    output [ 3:0] io_slave_rid
 );
 
     wire        fetch_valid;
@@ -352,10 +390,36 @@ module ysyx_26010028 #(
         .trace_b_fire   (data_bvalid && data_bready)
     );
 
+`ifdef YSYX_26010028_LOCAL_COMMIT_PORTS
     assign commit_valid_out = retire_valid;
     assign commit_pc_out    = retire_pc;
     assign commit_inst_out  = retire_inst;
+`endif
 
-    wire _unused_ok = &{1'b0, io_interrupt, io_master_bid};
+    // The CPU does not currently implement a DMA-facing AXI slave.
+    assign io_slave_awready = 1'b0;
+    assign io_slave_wready  = 1'b0;
+    assign io_slave_bvalid  = 1'b0;
+    assign io_slave_bresp   = 2'b0;
+    assign io_slave_bid     = 4'b0;
+    assign io_slave_arready = 1'b0;
+    assign io_slave_rvalid  = 1'b0;
+    assign io_slave_rresp   = 2'b0;
+    assign io_slave_rdata   = 32'b0;
+    assign io_slave_rlast   = 1'b0;
+    assign io_slave_rid     = 4'b0;
+
+    wire _unused_ok = &{
+        1'b0, io_interrupt, io_master_bid,
+        io_slave_awvalid, io_slave_awaddr, io_slave_awid,
+        io_slave_awlen, io_slave_awsize, io_slave_awburst,
+        io_slave_wvalid, io_slave_wdata, io_slave_wstrb, io_slave_wlast,
+        io_slave_bready, io_slave_arvalid, io_slave_araddr, io_slave_arid,
+        io_slave_arlen, io_slave_arsize, io_slave_arburst, io_slave_rready
+    };
 
 endmodule
+
+`ifdef YSYX_26010028_LOCAL_COMMIT_PORTS
+`undef YSYX_26010028_LOCAL_COMMIT_PORTS
+`endif
