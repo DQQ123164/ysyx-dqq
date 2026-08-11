@@ -151,7 +151,13 @@ module ysyx_26010028_exu (
     wire branch_redirect = (pipe_opcode == OP_BRANCH) && branch_taken;
     wire jump_redirect = (pipe_opcode == OP_JUMP) || (pipe_opcode == OP_JUMP_REG);
     wire redirect_request = branch_redirect || jump_redirect || take_ecall || take_mret || pipe_fence_i;
-    wire [31:0] dnpc = select_dnpc(snpc, add_sum, csr_probe_vector, csr_probe_epc);
+    wire [31:0] dnpc =
+        ((pipe_opcode == OP_BRANCH) ||
+         (pipe_opcode == OP_JUMP) ||
+         (pipe_opcode == OP_JUMP_REG)) ? {add_sum[31:1], 1'b0} :
+        take_ecall ? {csr_probe_vector[31:2], 2'b00} :
+        take_mret  ? csr_probe_epc :
+                     snpc;
 
     wire lsu_ready;
     wire lsu_complete;
@@ -321,22 +327,4 @@ function [31:0] select_alu;
     end
 endfunction
 
-function [31:0] select_dnpc;
-    input [31:0] pc4;
-    input [31:0] target_sum;
-    input [31:0] mtvec;
-    input [31:0] mepc;
-    begin
-        select_dnpc = pc4;
-        if ((pipe_opcode == OP_BRANCH) || (pipe_opcode == OP_JUMP)) begin
-            select_dnpc = {target_sum[31:1], 1'b0};
-        end else if (pipe_opcode == OP_JUMP_REG) begin
-            select_dnpc = {target_sum[31:1], 1'b0};
-        end else if (take_ecall) begin
-            select_dnpc = {mtvec[31:2], 2'b00};
-        end else if (take_mret) begin
-            select_dnpc = mepc;
-        end
-    end
-endfunction
 endmodule

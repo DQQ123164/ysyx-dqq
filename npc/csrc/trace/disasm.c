@@ -23,16 +23,13 @@ void init_disasm(void) {
   cs_err (*open_fn)(cs_arch, cs_mode, csh *) = dlsym(module, "cs_open");
   decode_fn = dlsym(module, "cs_disasm");
   release_fn = dlsym(module, "cs_free");
-  Assert(open_fn != NULL && decode_fn != NULL && release_fn != NULL,
-      "Capstone library is missing a required entry point");
+  Assert(open_fn != NULL && decode_fn != NULL && release_fn != NULL,"Capstone library is missing a required entry point");
 
   cs_mode mode = (cs_mode)(CS_MODE_RISCV32 | CS_MODE_RISCVC);
-  Assert(open_fn(CS_ARCH_RISCV, mode, &capstone_handle) == CS_ERR_OK,
-      "Capstone could not initialize the RISC-V decoder");
+  Assert(open_fn(CS_ARCH_RISCV, mode, &capstone_handle) == CS_ERR_OK, "Capstone could not initialize the RISC-V decoder");
 }
 
-void disassemble(char *output, int output_size, uint64_t pc,
-    uint8_t *code, int byte_count) {
+void disassemble(char *output, int output_size, uint64_t pc, uint8_t *code, int byte_count) {
   cs_insn *instruction = NULL;
   size_t count = decode_fn(capstone_handle, code, (size_t)byte_count, pc, 1, &instruction);
   if (count == 0) {
